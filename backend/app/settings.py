@@ -1,6 +1,6 @@
 import secrets
 
-from pydantic import ConfigDict, model_validator
+from pydantic import ConfigDict, computed_field, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -12,10 +12,18 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     FRONTEND_ORIGIN: str = "http://localhost:5173"
+    CORS_ORIGINS: str = "http://localhost:5173"
 
     OLLAMA_BASE_URL: str = "http://localhost:11434"
     OLLAMA_EMBEDDING_MODEL: str = "nomic-embed-text"
     OLLAMA_CHAT_MODEL: str = "qwen3:8b"
+
+    LLM_PROVIDER: str = "ollama"
+    EMBEDDING_PROVIDER: str = "ollama"
+
+    GEMINI_API_KEY: str | None = None
+    GEMINI_CHAT_MODEL: str = "gemini-2.0-flash"
+    GEMINI_EMBEDDING_MODEL: str = "models/text-embedding-004"
 
     CHROMA_PERSIST_DIRECTORY: str = "./storage/chroma"
     DOCUMENT_STORAGE_DIRECTORY: str = "./storage/documents"
@@ -25,6 +33,14 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @computed_field
+    @property
+    def cors_origin_list(self) -> list[str]:
+        raw = (self.CORS_ORIGINS or "").strip()
+        if not raw:
+            raw = "http://localhost:5173"
+        return [origin.strip() for origin in raw.split(",") if origin.strip()]
 
     @model_validator(mode="after")
     def validate_secret_key(self):

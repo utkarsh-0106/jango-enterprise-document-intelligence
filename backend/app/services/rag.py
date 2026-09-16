@@ -1,17 +1,40 @@
 from fastapi import HTTPException
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_ollama import ChatOllama
 
 from backend.app.schemas.rag import RagRequest, RagResponse
+from backend.app.services.ai_config import (
+    AIProviderConfigError,
+    normalize_provider,
+    require_gemini_api_key,
+)
 from backend.app.services.vector_store import similarity_search
 from backend.app.settings import settings
 
 
-def _get_llm() -> ChatOllama:
-    return ChatOllama(
-        model=settings.OLLAMA_CHAT_MODEL,
-        base_url=settings.OLLAMA_BASE_URL,
-        temperature=0,
+def _get_llm():
+    provider = normalize_provider(settings.LLM_PROVIDER)
+
+    if provider == "gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+
+        return ChatGoogleGenerativeAI(
+            model=settings.GEMINI_CHAT_MODEL,
+            google_api_key=require_gemini_api_key(),
+            temperature=0,
+        )
+
+    if provider == "ollama":
+        from langchain_ollama import ChatOllama
+
+        return ChatOllama(
+            model=settings.OLLAMA_CHAT_MODEL,
+            base_url=settings.OLLAMA_BASE_URL,
+            temperature=0,
+        )
+
+    raise AIProviderConfigError(
+        f"Unsupported LLM_PROVIDER '{settings.LLM_PROVIDER}'. "
+        "Use 'ollama' or 'gemini'."
     )
 
 

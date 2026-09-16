@@ -3,19 +3,45 @@ from typing import Iterable
 
 from langchain_chroma import Chroma
 from langchain_core.documents import Document as LangChainDocument
-from langchain_ollama import OllamaEmbeddings
 
+from backend.app.services.ai_config import (
+    AIProviderConfigError,
+    normalize_provider,
+    require_gemini_api_key,
+)
 from backend.app.settings import settings
 
 
 COLLECTION_NAME = "enterprise_documents"
 
 
-def get_embeddings() -> OllamaEmbeddings:
-    return OllamaEmbeddings(
-        model=settings.OLLAMA_EMBEDDING_MODEL,
-        base_url=settings.OLLAMA_BASE_URL,
+def _get_embeddings():
+    provider = normalize_provider(settings.EMBEDDING_PROVIDER)
+
+    if provider == "gemini":
+        from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+        return GoogleGenerativeAIEmbeddings(
+            model=settings.GEMINI_EMBEDDING_MODEL,
+            google_api_key=require_gemini_api_key(),
+        )
+
+    if provider == "ollama":
+        from langchain_ollama import OllamaEmbeddings
+
+        return OllamaEmbeddings(
+            model=settings.OLLAMA_EMBEDDING_MODEL,
+            base_url=settings.OLLAMA_BASE_URL,
+        )
+
+    raise AIProviderConfigError(
+        f"Unsupported EMBEDDING_PROVIDER '{settings.EMBEDDING_PROVIDER}'. "
+        "Use 'ollama' or 'gemini'."
     )
+
+
+def get_embeddings():
+    return _get_embeddings()
 
 
 def get_vector_store() -> Chroma:

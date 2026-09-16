@@ -1,0 +1,41 @@
+# Render Free filesystem is ephemeral: SQLite, ChromaDB, and uploaded
+# PDFs are wiped on restart/sleep. This is intentional for the demo.
+services:
+  - type: web
+    name: jango-backend
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.8"
+      - key: ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        value: sqlite:///./sql_app.db
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30"
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: EMBEDDING_PROVIDER
+        value: gemini
+      - key: GEMINI_CHAT_MODEL
+        value: gemini-2.0-flash
+      - key: GEMINI_EMBEDDING_MODEL
+        value: models/text-embedding-004
+      - key: CHROMA_PERSIST_DIRECTORY
+        value: ./storage/chroma
+      - key: DOCUMENT_STORAGE_DIRECTORY
+        value: ./storage/documents
+      - key: SECRET_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+      # Set in the Render dashboard after the Vercel URL exists, for example:
+      # CORS_ORIGINS=http://localhost:5173,https://<vercel-app>.vercel.app
