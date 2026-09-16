@@ -19,3 +19,5 @@ langchain-chroma
 
 langchain-ollama
 langchain-google-genai
+
+psycopg[binary]>=3.2.0
