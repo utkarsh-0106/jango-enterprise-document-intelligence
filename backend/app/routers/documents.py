@@ -30,6 +30,7 @@ from ..services.documents import (
     get_document_status,
 )
 from ..services.ingestion import ingest_document
+from ..settings import settings
 
 
 router = APIRouter(
@@ -37,7 +38,7 @@ router = APIRouter(
     tags=["documents"],
 )
 
-STORAGE_DIR = Path("storage/documents")
+STORAGE_DIR = Path(settings.DOCUMENT_STORAGE_DIRECTORY)
 MAX_FILE_SIZE = 10 * 1024 * 1024
 
 
