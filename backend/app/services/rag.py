@@ -158,8 +158,25 @@ Document context:
 
         response = llm.invoke(messages)
 
+        content = response.content
+
+        if isinstance(content, str):
+            answer = content.strip()
+        elif isinstance(content, list):
+            parts = []
+            for block in content:
+                if isinstance(block, dict):
+                    text = block.get("text")
+                    if text:
+                        parts.append(str(text))
+                elif isinstance(block, str):
+                    parts.append(block)
+            answer = "\n".join(parts).strip()
+        else:
+            answer = str(content).strip()
+
         return RagResponse(
-            answer=str(response.content),
+            answer=answer,
             sources=sources,
         )
 
