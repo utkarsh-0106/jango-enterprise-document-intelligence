@@ -21,6 +21,8 @@ def _get_llm():
             model=settings.GEMINI_CHAT_MODEL,
             google_api_key=require_gemini_api_key(),
             temperature=0,
+            timeout=30,
+            max_retries=1,
         )
 
     if provider == "ollama":

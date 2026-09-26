@@ -14,7 +14,7 @@ router = APIRouter(
 
 
 @router.post("/query", response_model=RagResponse)
-async def rag_query(
+def rag_query(
     rag_request: RagRequest,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
